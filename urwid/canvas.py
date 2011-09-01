@@ -403,8 +403,9 @@ class TextCanvas(Canvas):
             i = 0
             row = []
             for (a, cs), run in attr_cs:
-                if attr_map and a in attr_map:
-                    a = attr_map[a]
+                if attr_map:
+                    for mapper in attr_map:
+                        a = mapper(a)
                 row.append((a, cs, text[i:i+run]))
                 i += run
             yield row
@@ -437,8 +438,9 @@ class BlankCanvas(Canvas):
         return (cols, rows) of spaces with default attributes.
         """
         def_attr = None
-        if attr and None in attr:
-            def_attr = attr[None]
+        if attr:
+            for mapper in attr:
+                def_attr = mapper(def_attr)
         line = [(def_attr, None, bytes().rjust(cols))]
         for i in range(rows):
             yield line
@@ -481,8 +483,9 @@ class SolidCanvas(Canvas):
         if rows is None:
             rows = self.size[1]
         def_attr = None
-        if attr and None in attr:
-            def_attr = attr[None]
+        if attr:
+            for mapper in attr:
+                def_attr = mapper(def_attr)
 
         line = [(def_attr, self._cs, self._text*cols)]
         for i in range(rows):
@@ -754,27 +757,28 @@ class CompositeCanvas(Canvas):
     
     def fill_attr_apply(self, mapping):
         """
-        Apply an attribute-mapping dictionary to the canvas.
+        Apply an attribute-mapping dictionary or callable to the canvas.
 
         mapping -- dictionary of original-attribute:new-attribute items
+                   callable(original-attribute), returns new-attribute
         """
         if self.widget_info:
             raise self._finalized_error
+
+        if type(mapping) == dict:
+            mapper = lambda attr: mapping.get(attr, attr)
+        else:
+            mapper = mapping
 
         shards = []
         for num_rows, original_cviews in self.shards:
             new_cviews = []
             for cv in original_cviews:
-                # cv[4] == attr_map
-                if cv[4] is None:
-                    new_cviews.append(cv[:4] + 
-                        (mapping,) + cv[5:])
+                if cv[4] is not None:
+                    new_map = cv[4] + (mapper,)
                 else:
-                    combined = dict(mapping)
-                    combined.update([
-                        (k, mapping.get(v, v)) for k,v in cv[4].items()])
-                    new_cviews.append(cv[:4] +
-                        (combined,) + cv[5:])
+                    new_map = (mapper,)
+                new_cviews.append(cv[:4] + (new_map,) + cv[5:])
             shards.append((num_rows, new_cviews))
         self.shards = shards
 
