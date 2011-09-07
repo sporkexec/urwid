@@ -586,6 +586,17 @@ class Screen(BaseScreen, RealTerminal):
         def attr_to_escape(a):
             if a in self._pal_escape:
                 return self._pal_escape[a]
+            elif type(a) is tuple:
+                attr = a
+                # Check for a chain match, most specific first.
+                while len(attr) > 0:
+                    if attr in self._pal_escape:
+                        return self._pal_escape[attr]
+                    if len(attr) == 1 and attr[0] in self._pal_escape:
+                        return self._pal_escape[attr[0]]
+                    attr = attr[:-1]
+            elif (a,) in self._pal_escape:
+                return self._pal_escape[(a,)]
             elif isinstance(a, AttrSpec):
                 return self._attrspec_to_escape(a)
             # undefined attributes use default/default
