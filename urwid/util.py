@@ -466,11 +466,23 @@ class AttrMapChainer(object):
         if type(attr) is not tuple:
             attr = (attr,)
 
-        # Try to match a chain
+        # FIXME: Document this somewhere more visible.
+        # Try to match a chain. For example:
+        #
+        # attr = ('class', 'item')
+        # self.dict = {'class': 'top'},
+        # returns ('top', 'class', 'item')
+        #
+        # attr = ('class', 'item', 'bottom'))
+        # self.dict = {('class', 'item'): 'top'},
+        # returns ('top', 'class', 'item', 'bottom')
         attrcopy = attr
         while len(attrcopy) > 0:
             if attrcopy in self.dict:
                 added_attr = self.dict[attrcopy]
+                break
+            if len(attrcopy) == 1 and attrcopy[0] in self.dict:
+                added_attr = self.dict[attrcopy[0]]
                 break
             attrcopy = attrcopy[:-1]
 
@@ -489,6 +501,8 @@ class AttrMapChainer(object):
             added_attr = (added_attr,)
 
         output = added_attr + attr
+        if output[0] is None:
+            output = output[1:]
         if output[-1] is None:
             output = output[:-1]
         return output
