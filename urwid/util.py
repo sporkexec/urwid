@@ -457,3 +457,39 @@ def int_scale(val, val_range, out_range):
     # if num % dem == 0 then we are exactly half-way and have rounded up.
     return num // dem
 
+class AttrMapChainer(object):
+    def __init__(self, dictobj):
+        self.dict = dictobj
+
+    def __call__(self, attr=None):
+        added_attr = None
+        if type(attr) is not tuple:
+            attr = (attr,)
+
+        # Try to match a chain
+        attrcopy = attr
+        while len(attrcopy) > 0:
+            if attrcopy in self.dict:
+                added_attr = self.dict[attrcopy]
+                break
+            attrcopy = attrcopy[:-1]
+
+        # Else try to match None
+        if added_attr is None and attr == (None,):
+            if None in self.dict:
+                added_attr = self.dict[None]
+            elif (None,) in self.dict:
+                added_attr = self.dict[(None,)]
+
+        # Else match '*' if exists
+        if added_attr is None and '*' in self.dict:
+            added_attr = self.dict['*']
+
+        if type(added_attr) is not tuple:
+            added_attr = (added_attr,)
+
+        output = added_attr + attr
+        if output[-1] is None:
+            output = output[:-1]
+        return output
+

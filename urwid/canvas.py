@@ -22,7 +22,8 @@
 import weakref
 
 from urwid.util import rle_len, rle_append_modify, rle_join_modify, rle_product, \
-    calc_width, calc_text_pos, apply_target_encoding, trim_text_attr_cs
+    calc_width, calc_text_pos, apply_target_encoding, trim_text_attr_cs, \
+    AttrMapChainer
 from urwid.text_layout import trim_line, LayoutSegment
 from urwid.compat import bytes
 
@@ -766,7 +767,7 @@ class CompositeCanvas(Canvas):
             raise self._finalized_error
 
         if type(mapping) == dict:
-            mapper = lambda attr: mapping.get(attr, attr)
+            mapper = AttrMapChainer(mapping)
         else:
             mapper = mapping
 
