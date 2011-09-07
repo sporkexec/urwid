@@ -470,12 +470,12 @@ class AttrMapChainer(object):
         # Try to match a chain. For example:
         #
         # attr = ('class', 'item')
-        # self.dict = {'class': 'top'},
-        # returns ('top', 'class', 'item')
+        # self.dict = {'class': 'top'}
+        # return ('top', 'class', 'item')
         #
         # attr = ('class', 'item', 'bottom'))
-        # self.dict = {('class', 'item'): 'top'},
-        # returns ('top', 'class', 'item', 'bottom')
+        # self.dict = {('class', 'item'): 'top'}
+        # return ('top', 'class', 'item', 'bottom')
         attrcopy = attr
         while len(attrcopy) > 0:
             if attrcopy in self.dict:
@@ -506,4 +506,3 @@ class AttrMapChainer(object):
         if output[-1] is None:
             output = output[:-1]
         return output
-
